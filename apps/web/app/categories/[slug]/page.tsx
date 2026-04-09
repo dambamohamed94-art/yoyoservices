@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { getCategories, getCategoryBySlug, getProducts } from "../../../lib/api";
+import { getCategoryBySlug, getProducts } from "../../../lib/api";
+
+export const dynamic = "force-dynamic";
 
 type Category = {
   id: string;
@@ -25,14 +27,6 @@ type Product = {
   categoryId: string;
 };
 
-export async function generateStaticParams() {
-  const categories: Category[] = await getCategories();
-
-  return categories.map((category) => ({
-    slug: category.slug,
-  }));
-}
-
 export default async function CategoryPage({
   params,
 }: {
@@ -40,8 +34,15 @@ export default async function CategoryPage({
 }) {
   const { slug } = await params;
 
-  const category: Category | undefined = await getCategoryBySlug(slug);
-  const products: Product[] = await getProducts(slug);
+  let category: Category | undefined;
+  let products: Product[] = [];
+
+  try {
+    category = await getCategoryBySlug(slug);
+    products = await getProducts(slug);
+  } catch (error) {
+    console.error("Erreur lors du chargement de la catégorie :", error);
+  }
 
   if (!category) {
     return (

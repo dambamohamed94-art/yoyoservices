@@ -1,17 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
-export default function ResetPasswordPage() {
-  const searchParams = useSearchParams();
-  const initialToken = searchParams.get("token") || "";
+export const dynamic = "force-dynamic";
 
-  const [token, setToken] = useState(initialToken);
+export default function ResetPasswordPage() {
+  const [initialToken, setInitialToken] = useState("");
+  const [token, setToken] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -19,6 +18,13 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tokenFromUrl = params.get("token") || "";
+    setInitialToken(tokenFromUrl);
+    setToken(tokenFromUrl);
+  }, []);
 
   const passwordsMatch = useMemo(() => {
     return confirmPassword.length > 0 && password === confirmPassword;
@@ -56,9 +62,7 @@ export default function ResetPasswordPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data?.message || "Erreur lors de la réinitialisation"
-        );
+        throw new Error(data?.message || "Erreur lors de la réinitialisation");
       }
 
       setMessage(data.message || "Mot de passe réinitialisé avec succès.");
@@ -141,8 +145,8 @@ export default function ResetPasswordPage() {
                   confirmPassword.length === 0
                     ? "border-black/10 focus:border-orange-400"
                     : passwordsMatch
-                    ? "border-green-300 focus:border-green-400"
-                    : "border-red-300 focus:border-red-400"
+                      ? "border-green-300 focus:border-green-400"
+                      : "border-red-300 focus:border-red-400"
                 }`}
               />
               <button
@@ -188,7 +192,9 @@ export default function ResetPasswordPage() {
                 : "bg-black hover:bg-orange-500"
             }`}
           >
-            {isSubmitting ? "Réinitialisation..." : "Mettre à jour le mot de passe"}
+            {isSubmitting
+              ? "Réinitialisation..."
+              : "Mettre à jour le mot de passe"}
           </button>
         </form>
 
